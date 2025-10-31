@@ -1,0 +1,11 @@
+api:
+  base_url: "https://avi-mock-api-production.up.railway.app"
+  username: "ishwarikohalli@gmail.com"
+  password: "Sveri@8267"
+
+test_cases:
+  - "tests/test_disable_virtual_service.yaml"
+
+parallel_execution:
+  enabled: true
+  max_workers: 2

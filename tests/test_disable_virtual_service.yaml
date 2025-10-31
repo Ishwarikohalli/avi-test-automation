@@ -1,0 +1,33 @@
+name: "Disable Virtual Service backend-vs-t1r_1000-1"
+description: "Task 1 workflow to disable a specific VS and verify."
+
+pre_fetcher:
+  - endpoint: "/api/tenant"
+    action: "get"
+    log_message: "Fetched all tenants"
+  - endpoint: "/api/virtualservice"
+    action: "get" 
+    log_message: "Fetched all virtual services"
+  - endpoint: "/api/serviceengine"
+    action: "get"
+    log_message: "Fetched all service engines"
+
+pre_validation:
+  target_vs_name: "backend-vs-t1r_1000-1"
+  expected_enabled: true
+
+task_trigger:
+  endpoint: "/api/virtualservice/{vs_uuid}"
+  action: "put"
+  payload: {"enabled": false}
+
+post_validation:
+  endpoint: "/api/virtualservice/{vs_uuid}"
+  action: "get"
+  expected_enabled: false
+
+mock_actions:
+  - type: "ssh"
+    command: "show virtualservice detail"
+  - type: "rdp"
+    target: "10.10.10.100"
