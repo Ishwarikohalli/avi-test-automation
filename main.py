@@ -3,13 +3,15 @@
 import os
 import sys
 import logging
-import yaml
 
 # Add the test-framework directory to Python path
 sys.path.append(os.path.join(os.path.dirname(__file__), 'test-framework'))
 
 from api_client import AviApiClient
 from test_runner import TestRunner
+
+# Import utility functions directly (since we can't import from utils folder)
+import yaml
 
 def load_yaml_config(file_path):
     """Load YAML configuration file"""
@@ -53,27 +55,6 @@ def main():
         logger.error("Failed to login to AVI API")
         sys.exit(1)
     
-    # DEBUG: Check what virtual services actually exist
-    logger.info("=== Checking available Virtual Services ===")
-    response = api_client.get_all_virtual_services()
-    if response['success']:
-        vs_data = response['data']
-        if isinstance(vs_data, dict) and 'results' in vs_data:
-            logger.info(f"Found {len(vs_data['results'])} Virtual Services:")
-            for vs in vs_data['results']:
-                vs_name = vs.get('name', 'Unknown')
-                vs_uuid = vs.get('uuid', 'Unknown')
-                vs_enabled = vs.get('enabled', 'Unknown')
-                logger.info(f"  - Name: {vs_name}")
-                logger.info(f"    UUID: {vs_uuid}")
-                logger.info(f"    Enabled: {vs_enabled}")
-                logger.info("    ---")
-        else:
-            logger.warning("Unexpected Virtual Services data structure")
-            logger.info(f"Response keys: {list(vs_data.keys()) if isinstance(vs_data, dict) else 'Not a dict'}")
-    else:
-        logger.error(f"Failed to get Virtual Services: {response['error']}")
-    
     # Load test cases
     test_configs = []
     for test_case_path in config['test_cases']:
@@ -108,6 +89,14 @@ def main():
     logger.info(f"=== TEST SUMMARY ===")
     logger.info(f"Successful: {successful_tests}/{total_tests}")
     logger.info(f"Failed: {total_tests - successful_tests}/{total_tests}")
+    
+    # Exit with proper code for Jenkins pipeline
+    if successful_tests < total_tests:
+        logger.error("❌ Test execution failed!")
+        sys.exit(1)  # This will fail the Jenkins pipeline
+    else:
+        logger.info("✅ All tests passed successfully!")
+        sys.exit(0)  # This will pass the Jenkins pipeline
 
 if __name__ == "__main__":
     main()
