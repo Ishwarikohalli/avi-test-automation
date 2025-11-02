@@ -1,5 +1,9 @@
 pipeline {
-    agent any
+    agent {
+        docker {
+            image 'python:3.9-slim'
+        }
+    }
     
     triggers {
         cron('H * * * *')
@@ -18,27 +22,21 @@ pipeline {
         
         stage('Setup Environment') {
             steps {
-                script {
-                    // Changed from python3 to python
-                    sh 'python -m venv venv'
-                    
-                    sh '''
-                        . venv/bin/activate
-                        pip install --upgrade pip
-                        pip install -r requirements.txt
-                    '''
-                }
+                sh '''
+                    python -m venv venv
+                    . venv/bin/activate
+                    pip install --upgrade pip
+                    pip install -r requirements.txt
+                '''
             }
         }
         
         stage('Run Automation') {
             steps {
-                script {
-                    sh '''
-                        . venv/bin/activate
-                        python main.py --config config.yml
-                    '''
-                }
+                sh '''
+                    . venv/bin/activate
+                    python main.py --config config.yml
+                '''
             }
         }
     }
